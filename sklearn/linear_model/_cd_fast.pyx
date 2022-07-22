@@ -221,13 +221,14 @@ def enet_coordinate_descent(
 
                 w_max = fmax(w_max, fabs(w[ii]))
             if fit_intercept:
-                # update intercept
+                # intercept = np.mean(R)
+                intercept = 0.
                 for ii in range(n_samples):
-                    intercept -= R[ii] / n_samples
+                    intercept += R[ii] / n_samples
 
-                # center residuals
+                # R -= np.mean(R)
                 for ii in range(n_samples):
-                    R[ii] -= intercept * R[ii] 
+                    R[ii] -= intercept
 
             if (w_max == 0.0 or
                 d_w_max / w_max < d_w_tol or
