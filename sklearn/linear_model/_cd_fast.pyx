@@ -103,7 +103,8 @@ def enet_coordinate_descent(
     floating tol,
     object rng,
     bint random=0,
-    bint positive=0
+    bint positive=0,
+    bint fit_intercept=0
 ):
     """Cython version of the coordinate descent algorithm
         for Elastic-Net regression
@@ -153,6 +154,7 @@ def enet_coordinate_descent(
     cdef floating l1_norm
     cdef floating const
     cdef floating A_norm2
+    cdef floating intercept = 0.
     cdef unsigned int ii
     cdef unsigned int i
     cdef unsigned int n_iter = 0
@@ -169,6 +171,15 @@ def enet_coordinate_descent(
         _copy(n_samples, &y[0], 1, &R[0], 1)
         _gemv(ColMajor, NoTrans, n_samples, n_features, -1.0, &X[0, 0],
               n_samples, &w[0], 1, 1.0, &R[0], 1)
+
+        if fit_intercept:  
+            # intercept = np.mean(R)
+            for ii in range(n_samples):
+                intercept += R[ii] / n_samples
+
+            # R -= intercept
+            for ii in range(n_samples):
+                R[ii] -= intercept
 
         # tol *= np.dot(y, y)
         tol *= _dot(n_samples, &y[0], 1, &y[0], 1)
@@ -209,6 +220,14 @@ def enet_coordinate_descent(
                 d_w_max = fmax(d_w_max, d_w_ii)
 
                 w_max = fmax(w_max, fabs(w[ii]))
+            if fit_intercept:
+                # update intercept
+                for ii in range(n_samples):
+                    intercept -= R[ii] / n_samples
+
+                # center residuals
+                for ii in range(n_samples):
+                    R[ii] -= intercept * R[ii] 
 
             if (w_max == 0.0 or
                 d_w_max / w_max < d_w_tol or
