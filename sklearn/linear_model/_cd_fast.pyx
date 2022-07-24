@@ -6,7 +6,7 @@
 #
 # License: BSD 3 clause
 
-from libc.math cimport fabs
+from libc.math cimport fabs, sqrt
 cimport numpy as cnp
 import numpy as np
 import numpy.linalg as linalg
@@ -403,9 +403,8 @@ def sparse_enet_coordinate_descent(
     else:
         yw = np.multiply(sample_weight, y)
         R = yw.copy()
-        sample_weight_norm2 = _dot(n_samples, 
-                                   &sample_weight[0], 1,
-                                   &sample_weight[0], 1)
+        for ii in range(n_samples):
+            sample_weight_norm2 += sample_weight[ii]
 
     with nogil:
         # whether to fit intercept
@@ -428,7 +427,6 @@ def sparse_enet_coordinate_descent(
             else:
                 for jj in range(startptr, endptr):
                     tmp = sample_weight[X_indices[jj]]
-                    # second term will be subtracted by loop over range(n_samples)
                     normalize_sum += tmp * X_data[jj] ** 2
                     R[X_indices[jj]] -= tmp * X_data[jj] * w_ii
                 norm_cols_X[ii] = normalize_sum
@@ -443,12 +441,12 @@ def sparse_enet_coordinate_descent(
                 for ii in range(n_samples):
                     R[ii] -= intercept
             else:
-                # intercept = sample_weight * R / sample_weight_norm2
+                # intercept = sample_weight @ R / sample_weight_norm2
                 for ii in range(n_samples):
                     intercept += sample_weight[ii] * R[ii] / sample_weight_norm2
                 # R -= intercept * sample_weight
                 for ii in range(n_samples):
-                    R[ii] -= intercept * sample_weight[ii] 
+                    R[ii] -= intercept * sample_weight[ii]
             
     
         # tol *= np.dot(y, y)
@@ -525,7 +523,7 @@ def sparse_enet_coordinate_descent(
                         intercept += sample_weight[ii] * R[ii] / sample_weight_norm2
                     # R -= intercept * sample_weight
                     for ii in range(n_samples):
-                        R[ii] -= intercept * sample_weight[ii] 
+                        R[ii] -= intercept * sample_weight[ii]
 
             if w_max == 0.0 or d_w_max / w_max < d_w_tol or n_iter == max_iter - 1:
                 # the biggest coordinate update of this iteration was smaller than
