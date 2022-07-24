@@ -443,10 +443,10 @@ def sparse_enet_coordinate_descent(
             else:
                 # intercept = sample_weight @ R / sample_weight_norm2
                 for ii in range(n_samples):
-                    intercept += sample_weight[ii] * R[ii] / sample_weight_norm2
+                    intercept += sqrt(sample_weight[ii]) * R[ii] / sample_weight_norm2
                 # R -= intercept * sample_weight
                 for ii in range(n_samples):
-                    R[ii] -= intercept * sample_weight[ii]
+                    R[ii] -= intercept * sqrt(sample_weight[ii])
             
     
         # tol *= np.dot(y, y)
@@ -520,10 +520,10 @@ def sparse_enet_coordinate_descent(
                 else:
                     # intercept = sample_weight @ R / sample_weight_norm2
                     for ii in range(n_samples):
-                        intercept += sample_weight[ii] * R[ii] / sample_weight_norm2
+                        intercept += sqrt(sample_weight[ii]) * R[ii] / sample_weight_norm2
                     # R -= intercept * sample_weight
                     for ii in range(n_samples):
-                        R[ii] -= intercept * sample_weight[ii]
+                        R[ii] -= intercept * sqrt(sample_weight[ii])
 
             if w_max == 0.0 or d_w_max / w_max < d_w_tol or n_iter == max_iter - 1:
                 # the biggest coordinate update of this iteration was smaller than
