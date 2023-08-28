@@ -92,7 +92,7 @@ def _graphical_lasso(
     # make the convergence go faster.
     covariance_ *= 0.95
     diagonal = emp_cov.flat[:: n_features + 1]
-    covariance_.flat[:: n_features + 1] = diagonal
+    covariance_.flat[:: n_features + 1] = diagonal + alpha
     precision_ = linalg.pinvh(covariance_)
 
     indices = np.arange(n_features)
